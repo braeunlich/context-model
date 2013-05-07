@@ -1,6 +1,8 @@
 package ch.uzh.ifi.seal.contextmodels.view.layout;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.draw2d.Figure;
@@ -40,11 +42,12 @@ public class CellLayout {
 	private int numberOfCellsY = 3;
 
 	Map<CellCoordinate, Cell> cells = new HashMap<>();
-	
+
 	private final Figure rootFigure;
 	private final XYLayout swtLayout;
 
-	public CellLayout(final Composite parent, final Figure rootFigure, XYLayout swtLayout) {
+	public CellLayout(final Composite parent, final Figure rootFigure,
+			XYLayout swtLayout) {
 		this.parent = parent;
 		this.rootFigure = rootFigure;
 		this.swtLayout = swtLayout;
@@ -59,12 +62,8 @@ public class CellLayout {
 
 	private void resize() {
 		calculateNumberOfCells();
-		
-		for(Cell cell: cells.values()) {
-			cell.layoutNode();
-		}
 	}
-	
+
 	public void reset() {
 		rootFigure.removeAll();
 		cells.clear();
@@ -77,11 +76,11 @@ public class CellLayout {
 				: 3;
 	}
 
-	public void addClass(final int x, final int y, JavaClass clazz) {
+	public void addClass(CellCoordinate coordinates, JavaClass clazz) {
 		ClassFigure classFigure = new ClassFigure(clazz);
-		getCell(x, y).addClassFigure(classFigure);
+		getCell(coordinates.getX(), coordinates.getY()).addClassFigure(classFigure);
 	}
-	
+
 	/**
 	 * Return the cell at the given coordinates or create the cell.
 	 * 
@@ -90,12 +89,16 @@ public class CellLayout {
 	 * If the coordinate is not available in the current layout, an
 	 * IndexOutOfBoundsException will be thrown.
 	 * 
-	 * @param x X-Coordinate of the cell
-	 * @param y Y-Coordinate of the cell
+	 * @param x
+	 *            X-Coordinate of the cell
+	 * @param y
+	 *            Y-Coordinate of the cell
 	 * @return
 	 */
 	public Cell getCell(final int x, final int y) {
-		checkBounds(x, y);
+		if(!checkBounds(x, y)) {
+			return null;
+		}
 
 		CellCoordinate coordinate = new CellCoordinate(x, y);
 		if (cells.containsKey(coordinate)) {
@@ -112,13 +115,15 @@ public class CellLayout {
 	}
 
 	public Rectangle getCellBounds(final int x, final int y) {
-		checkBounds(x, y);
+		if(!checkBounds(x, y)) {
+			throw new IndexOutOfBoundsException();
+		}
 
 		int xCellNumber = x + numberOfCellsX / 2;
 		int xPos = CELL_MARGIN * (xCellNumber + 1) + xCellNumber
 				* getCellWidth();
 
-		int yCellNumber = x + numberOfCellsY / 2;
+		int yCellNumber = y + numberOfCellsY / 2;
 		int yPos = CELL_MARGIN * (yCellNumber + 1) + yCellNumber
 				* getCellHeight();
 
@@ -141,6 +146,65 @@ public class CellLayout {
 		return false;
 	}
 
+	/**
+	 * Priorities are as follows:<br />
+	 * 
+	 * <pre>
+	 * [parent 4] [parent 2] [parent 1] [parent 3] [parent 5] <br />
+	 * .......................[ cell ]....................... <br />
+	 * [child  4] [child  2] [child  1] [child  3] [child  5] <br />
+	 * </pre>
+	 * 
+	 * @param cell
+	 * @return free coordinates of a cell that is above "cell".
+	 */
+	public CellCoordinate getFreeParentCoordinates(CellCoordinate cell) {
+		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
+		
+		coordinatePriorities.add(new CellCoordinate(cell.getX(), cell.getY()-1));
+		
+		for(int i=1; i<=numberOfCellsX/2; i++) {
+			coordinatePriorities.add(new CellCoordinate(cell.getX()-i, cell.getY()-1));
+			coordinatePriorities.add(new CellCoordinate(cell.getX()+i, cell.getY()-1));
+		}
+		
+		return getFirstFreeCoordinate(coordinatePriorities);
+	}
+	
+	/**
+	 * Priorities are as follows:<br />
+	 * 
+	 * <pre>
+	 * [parent 4] [parent 2] [parent 1] [parent 3] [parent 5] <br />
+	 * .......................[ cell ]....................... <br />
+	 * [child  4] [child  2] [child  1] [child  3] [child  5] <br />
+	 * </pre>
+	 * 
+	 * @param cell
+	 * @return free coordinates of a cell that is above "cell".
+	 */
+	public CellCoordinate getFreeChildCoordinates(CellCoordinate cell) {
+		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
+		
+		coordinatePriorities.add(new CellCoordinate(cell.getX(), cell.getY()+1));
+		
+		for(int i=0; i<numberOfCellsX/2; i++) {
+			coordinatePriorities.add(new CellCoordinate(cell.getX()-i, cell.getY()+1));
+			coordinatePriorities.add(new CellCoordinate(cell.getX()+i, cell.getY()+1));
+		}
+		
+		return getFirstFreeCoordinate(coordinatePriorities);
+	}
+	
+	private CellCoordinate getFirstFreeCoordinate(List<CellCoordinate> coordinateList) {
+		for(CellCoordinate coordinates : coordinateList) {
+			if(!cells.containsKey(coordinates)) {
+				return coordinates;
+			}
+		}
+		return null;
+	}
+
 	private int getCellWidth() {
 		int width = parent.getBounds().width - CELL_MARGIN
 				* (numberOfCellsX + 1);
@@ -153,23 +217,18 @@ public class CellLayout {
 		return height / numberOfCellsY;
 	}
 
-	private void checkBounds(final int x, final int y)
-			throws IndexOutOfBoundsException {
+	private boolean checkBounds(final int x, final int y) {
 		if (Math.abs(x) > (numberOfCellsX / 2)
 				|| Math.abs(y) > (numberOfCellsY / 2)) {
-			String message = "there is no cell with coordinates(" + x + "; "
-					+ y + ")! " + "Available range: " + "("
-					+ (numberOfCellsX / 2) * -1 + "; " + (numberOfCellsY / 2)
-					* -1 + ") - " + "(" + (numberOfCellsX / 2) + "; "
-					+ (numberOfCellsY / 2) * -1 + ")";
-			throw new IndexOutOfBoundsException(message);
+			return false;
 		}
+		return true;
 	}
-	
+
 	public Figure getRootFigure() {
 		return rootFigure;
 	}
-	
+
 	public XYLayout getSwtLayout() {
 		return swtLayout;
 	}
