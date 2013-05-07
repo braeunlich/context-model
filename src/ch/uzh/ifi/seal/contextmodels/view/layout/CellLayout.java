@@ -5,12 +5,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.draw2d.ChopboxAnchor;
 import org.eclipse.draw2d.Figure;
+import org.eclipse.draw2d.PolygonDecoration;
+import org.eclipse.draw2d.PolylineConnection;
 import org.eclipse.draw2d.XYLayout;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaClass;
 import ch.uzh.ifi.seal.contextmodels.view.uml.ClassFigure;
@@ -76,9 +81,9 @@ public class CellLayout {
 				: 3;
 	}
 
-	public void addClass(CellCoordinate coordinates, JavaClass clazz) {
+	public void addClass(CellCoordinate coordinate, JavaClass clazz) {
 		ClassFigure classFigure = new ClassFigure(clazz);
-		getCell(coordinates.getX(), coordinates.getY()).addClassFigure(classFigure);
+		getCell(coordinate).addClassFigure(classFigure);
 	}
 
 	/**
@@ -95,12 +100,11 @@ public class CellLayout {
 	 *            Y-Coordinate of the cell
 	 * @return
 	 */
-	public Cell getCell(final int x, final int y) {
-		if(!checkBounds(x, y)) {
+	public Cell getCell(CellCoordinate coordinate) {
+		if(!checkBounds(coordinate)) {
 			return null;
 		}
 
-		CellCoordinate coordinate = new CellCoordinate(x, y);
 		if (cells.containsKey(coordinate)) {
 			return cells.get(coordinate);
 		}
@@ -110,20 +114,17 @@ public class CellLayout {
 		return cell;
 	}
 
-	public Rectangle getCellBounds(CellCoordinate coordinates) {
-		return getCellBounds(coordinates.getX(), coordinates.getY());
-	}
-
-	public Rectangle getCellBounds(final int x, final int y) {
-		if(!checkBounds(x, y)) {
+	public Rectangle getCellBounds(CellCoordinate coordinate) {
+		
+		if(!checkBounds(coordinate)) {
 			throw new IndexOutOfBoundsException();
 		}
 
-		int xCellNumber = x + numberOfCellsX / 2;
+		int xCellNumber = coordinate.getX() + numberOfCellsX / 2;
 		int xPos = CELL_MARGIN * (xCellNumber + 1) + xCellNumber
 				* getCellWidth();
 
-		int yCellNumber = y + numberOfCellsY / 2;
+		int yCellNumber = coordinate.getY() + numberOfCellsY / 2;
 		int yPos = CELL_MARGIN * (yCellNumber + 1) + yCellNumber
 				* getCellHeight();
 
@@ -217,9 +218,9 @@ public class CellLayout {
 		return height / numberOfCellsY;
 	}
 
-	private boolean checkBounds(final int x, final int y) {
-		if (Math.abs(x) > (numberOfCellsX / 2)
-				|| Math.abs(y) > (numberOfCellsY / 2)) {
+	private boolean checkBounds(CellCoordinate coordinate) {
+		if (Math.abs(coordinate.getX()) > (numberOfCellsX / 2)
+				|| Math.abs(coordinate.getY()) > (numberOfCellsY / 2)) {
 			return false;
 		}
 		return true;
@@ -231,6 +232,38 @@ public class CellLayout {
 
 	public XYLayout getSwtLayout() {
 		return swtLayout;
+	}
+
+	public void addInheritance(CellCoordinate childCoordinate,
+			CellCoordinate parentCoordinate) {
+		
+		ClassFigure childClassFigure = getCell(childCoordinate).getClassFigure();
+		ClassFigure parentClassFigure = getCell(parentCoordinate).getClassFigure();
+		
+		if(childClassFigure == null || parentClassFigure == null) {
+			return;
+		}
+		
+		rootFigure.add(parentClassFigure);
+		swtLayout.setConstraint(parentClassFigure, getCell(parentCoordinate).getRectangle());
+		rootFigure.add(connectInheritance(childClassFigure, parentClassFigure));
+		
+	}
+	
+	private PolylineConnection connectInheritance(ClassFigure child,
+			ClassFigure parent) {
+		PolylineConnection connection = new PolylineConnection();
+		connection.setSourceAnchor(new ChopboxAnchor(child));
+		connection.setTargetAnchor(new ChopboxAnchor(parent));
+
+		PolygonDecoration decoration = new PolygonDecoration();
+		decoration.setFill(true);
+		decoration.setBackgroundColor(new Color(Display.getCurrent(), 255, 255,
+				255));
+		decoration.setScale(8, 6);
+		connection.setTargetDecoration(decoration);
+
+		return connection;
 	}
 
 }

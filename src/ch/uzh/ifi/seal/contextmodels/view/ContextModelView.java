@@ -83,27 +83,19 @@ public class ContextModelView extends ViewPart {
 		
 	}
 	
-	private void showParentClassAndRelation(JavaInheritance javaInheritance, CellCoordinate childCoordinates) {
-		CellCoordinate parentCoordinate = layout.getFreeParentCoordinates(childCoordinates);
+	private void showParentClassAndRelation(JavaInheritance javaInheritance, CellCoordinate childCoordinate) {
+		CellCoordinate parentCoordinate = layout.getFreeParentCoordinates(childCoordinate);
 		if(parentCoordinate == null) {
 			return;
 		}
 		
 		JavaClass parentClass = (JavaClass) javaInheritance.getParentElement();
+		
 		layout.addClass(parentCoordinate, parentClass);
-		
-		
-//		ClassFigure parentClassFigure = new ClassFigure(parentClass);
-//		Rectangle rectangle = layouter
-//				.getParentClassRectangle(parentClassFigure);
-//
-//		if (rectangle != null) {
-//			rootFigure.add(parentClassFigure);
-//			layout.setConstraint(parentClassFigure, rectangle);
-//			rootFigure.add(connectInheritance(activeClassFigure,
-//					parentClassFigure));
-//		}
+		layout.addInheritance(childCoordinate, parentCoordinate);
 
+		showParentClasses(parentClass, parentCoordinate);
+		
 	}
 	
 	

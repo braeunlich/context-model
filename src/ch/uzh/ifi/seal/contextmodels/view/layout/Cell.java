@@ -26,8 +26,12 @@ public class Cell {
 		layoutNode();
 	}
 	
+	public ClassFigure getClassFigure() {
+		return figure;
+	}
+	
 	public void layoutNode() {
-		layout.getSwtLayout().setConstraint(figure, getRectangle(figure));
+		layout.getSwtLayout().setConstraint(figure, getRectangle());
 	}
 
 	/**
@@ -36,7 +40,7 @@ public class Cell {
 	 * @param figure
 	 * @return
 	 */
-	private Rectangle getRectangle(ClassFigure figure) {
+	public Rectangle getRectangle() {
 		Rectangle bounds = getBounds();
 
 		int width = figure.getPreferredSize().width;
