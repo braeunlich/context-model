@@ -268,10 +268,20 @@ public class CellLayout {
 		return getFirstFreeCoordinate(coordinatePriorities);
 	}
 	
+	public CellCoordinate getFreeCalleeCoordinate(CellCoordinate cell) {
+		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
+
+		coordinatePriorities.add(new CellCoordinate(cell.getX() + 1, cell.getY()));
+		coordinatePriorities.add(new CellCoordinate(cell.getX() + 1, cell.getY() + 1));
+		coordinatePriorities.add(new CellCoordinate(cell.getX() + 1, cell.getY() - 1));
+		
+		return getFirstFreeCoordinate(coordinatePriorities);
+	}
+	
 	private CellCoordinate getFirstFreeCoordinate(
 			List<CellCoordinate> coordinateList) {
 		for (CellCoordinate coordinates : coordinateList) {
-			if (!cells.containsKey(coordinates)) {
+			if (!cells.containsKey(coordinates) && checkBounds(coordinates)) {
 				return coordinates;
 			}
 		}

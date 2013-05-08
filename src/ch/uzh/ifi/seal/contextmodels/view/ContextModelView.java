@@ -73,16 +73,11 @@ public class ContextModelView extends ViewPart {
 			showParentClasses(activeClass, coordinates);
 			showChildClasses(activeClass, coordinates);
 			
-//			if (model.getActiveElement() instanceof JavaMethod) {
-//			showCallers((JavaMethod) model.getActiveElement(),
-//					activeClassFigure.getActiveMethodLabel());
-//			showCallees((JavaMethod) model.getActiveElement(),
-//					activeClassFigure.getActiveMethodLabel());
-//		}
 			if(ContextModel.get().getActiveElement() instanceof JavaMethod) {
+				MethodLabel activeMethodFigure = layout.getActiveClassFigure().getActiveMethodLabel();
 				
-				MethodLabel caleeFigure = layout.getActiveClassFigure().getActiveMethodLabel();
-				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, caleeFigure);
+				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, activeMethodFigure);
+				showCallees(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, activeMethodFigure);
 			}
 		}
 	}
@@ -154,9 +149,20 @@ public class ContextModelView extends ViewPart {
 			CallerMethodFigure callerFigure = cell.addCallerMethod(method);
 			layout.addCall(callerFigure.getMethodLabel(), calleeMethodLabel);
 		}
-
 	}
 	
+	private void showCallees(JavaMethod activeMethod, CellCoordinate coordinates, MethodLabel callerMethodLabel) {
+		CellCoordinate calleeCoordinate = layout.getFreeCalleeCoordinate(coordinates);
+		MethodCell cell = layout.getMethodCell(calleeCoordinate);
+		if(cell == null) {
+			return;
+		}
+		
+		for (JavaMethod method : ContextModel.get().getCallees(activeMethod)) {
+			CallerMethodFigure calleeFigure = cell.addCallerMethod(method);
+			layout.addCall(callerMethodLabel, calleeFigure.getMethodLabel());
+		}
+	}
 	
 
 
