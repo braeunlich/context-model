@@ -38,8 +38,8 @@ public class CellLayout {
 	private final static int CELL_MARGIN = 10;
 	// Thresholds: if the view's size is larger than a threshold,
 	// 5 instead of three cells are displayed.
-	private final static int RELAYOUT_THRESHOLD_WIDTH = 500;
-	private final static int RELAYOUT_THRESHOLD_HEIGHT = 500;
+	private final static int THRESHOLD_WIDTH = 500;
+	private final static int THRESHOLD_HEIGHT = 500;
 
 	private final Composite parent;
 
@@ -75,13 +75,14 @@ public class CellLayout {
 	}
 
 	private void calculateNumberOfCells() {
-		numberOfCellsX = parent.getBounds().width > RELAYOUT_THRESHOLD_WIDTH ? 5
-				: 3;
-		numberOfCellsY = parent.getBounds().height > RELAYOUT_THRESHOLD_HEIGHT ? 5
-				: 3;
+		numberOfCellsX = parent.getBounds().width > THRESHOLD_WIDTH ? 5 : 3;
+		numberOfCellsY = parent.getBounds().height > THRESHOLD_HEIGHT ? 5 : 3;
 	}
 
 	public void addClass(CellCoordinate coordinate, JavaClass clazz) {
+		if(getCell(coordinate) == null) {
+			return;
+		}
 		ClassFigure classFigure = new ClassFigure(clazz);
 		getCell(coordinate).addClassFigure(classFigure);
 	}
@@ -101,7 +102,7 @@ public class CellLayout {
 	 * @return
 	 */
 	public Cell getCell(CellCoordinate coordinate) {
-		if(!checkBounds(coordinate)) {
+		if (!checkBounds(coordinate)) {
 			return null;
 		}
 
@@ -114,9 +115,16 @@ public class CellLayout {
 		return cell;
 	}
 
+	/**
+	 * Get a rectangle that denotes the maximum size (and position) that content
+	 * content of a cell can use.
+	 * 
+	 * @param coordinate
+	 * @return
+	 */
 	public Rectangle getCellBounds(CellCoordinate coordinate) {
-		
-		if(!checkBounds(coordinate)) {
+
+		if (!checkBounds(coordinate)) {
 			throw new IndexOutOfBoundsException();
 		}
 
@@ -161,17 +169,20 @@ public class CellLayout {
 	 */
 	public CellCoordinate getFreeParentCoordinates(CellCoordinate cell) {
 		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
-		
-		coordinatePriorities.add(new CellCoordinate(cell.getX(), cell.getY()-1));
-		
-		for(int i=1; i<=numberOfCellsX/2; i++) {
-			coordinatePriorities.add(new CellCoordinate(cell.getX()-i, cell.getY()-1));
-			coordinatePriorities.add(new CellCoordinate(cell.getX()+i, cell.getY()-1));
+
+		coordinatePriorities.add(new CellCoordinate(cell.getX(),
+				cell.getY() - 1));
+
+		for (int i = 1; i <= numberOfCellsX / 2; i++) {
+			coordinatePriorities.add(new CellCoordinate(cell.getX() - i, cell
+					.getY() - 1));
+			coordinatePriorities.add(new CellCoordinate(cell.getX() + i, cell
+					.getY() - 1));
 		}
-		
+
 		return getFirstFreeCoordinate(coordinatePriorities);
 	}
-	
+
 	/**
 	 * Priorities are as follows:<br />
 	 * 
@@ -186,20 +197,24 @@ public class CellLayout {
 	 */
 	public CellCoordinate getFreeChildCoordinates(CellCoordinate cell) {
 		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
-		
-		coordinatePriorities.add(new CellCoordinate(cell.getX(), cell.getY()+1));
-		
-		for(int i=0; i<numberOfCellsX/2; i++) {
-			coordinatePriorities.add(new CellCoordinate(cell.getX()-i, cell.getY()+1));
-			coordinatePriorities.add(new CellCoordinate(cell.getX()+i, cell.getY()+1));
+
+		coordinatePriorities.add(new CellCoordinate(cell.getX(),
+				cell.getY() + 1));
+
+		for (int i = 0; i < numberOfCellsX / 2; i++) {
+			coordinatePriorities.add(new CellCoordinate(cell.getX() - i, cell
+					.getY() + 1));
+			coordinatePriorities.add(new CellCoordinate(cell.getX() + i, cell
+					.getY() + 1));
 		}
-		
+
 		return getFirstFreeCoordinate(coordinatePriorities);
 	}
-	
-	private CellCoordinate getFirstFreeCoordinate(List<CellCoordinate> coordinateList) {
-		for(CellCoordinate coordinates : coordinateList) {
-			if(!cells.containsKey(coordinates)) {
+
+	private CellCoordinate getFirstFreeCoordinate(
+			List<CellCoordinate> coordinateList) {
+		for (CellCoordinate coordinates : coordinateList) {
+			if (!cells.containsKey(coordinates)) {
 				return coordinates;
 			}
 		}
@@ -237,19 +252,26 @@ public class CellLayout {
 	public void addInheritance(CellCoordinate childCoordinate,
 			CellCoordinate parentCoordinate) {
 		
-		ClassFigure childClassFigure = getCell(childCoordinate).getClassFigure();
-		ClassFigure parentClassFigure = getCell(parentCoordinate).getClassFigure();
-		
-		if(childClassFigure == null || parentClassFigure == null) {
+		if(getCell(childCoordinate) == null || getCell(parentCoordinate) == null) {
 			return;
 		}
-		
+
+		ClassFigure childClassFigure = getCell(childCoordinate)
+				.getClassFigure();
+		ClassFigure parentClassFigure = getCell(parentCoordinate)
+				.getClassFigure();
+
+		if (childClassFigure == null || parentClassFigure == null) {
+			return;
+		}
+
 		rootFigure.add(parentClassFigure);
-		swtLayout.setConstraint(parentClassFigure, getCell(parentCoordinate).getRectangle());
+		swtLayout.setConstraint(parentClassFigure, getCell(parentCoordinate)
+				.getRectangle());
 		rootFigure.add(connectInheritance(childClassFigure, parentClassFigure));
-		
+
 	}
-	
+
 	private PolylineConnection connectInheritance(ClassFigure child,
 			ClassFigure parent) {
 		PolylineConnection connection = new PolylineConnection();
