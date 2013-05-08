@@ -8,7 +8,7 @@ import org.eclipse.swt.graphics.Color;
 
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaMethod;
 
-public class CallerMethodFigure extends Figure {
+public class CallerMethodFigure extends Figure implements MethodFigure {
 	
 	public static final int HEIGHT = 18;
 	

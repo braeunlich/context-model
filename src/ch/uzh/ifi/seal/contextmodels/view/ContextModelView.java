@@ -1,5 +1,6 @@
 package ch.uzh.ifi.seal.contextmodels.view;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.draw2d.ColorConstants;
@@ -18,9 +19,11 @@ import ch.uzh.ifi.seal.contextmodels.model.ContextModel;
 import ch.uzh.ifi.seal.contextmodels.model.Observer;
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaClass;
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaInheritance;
+import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaMethod;
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaRelation;
 import ch.uzh.ifi.seal.contextmodels.view.layout.CellCoordinate;
 import ch.uzh.ifi.seal.contextmodels.view.layout.CellLayout;
+import ch.uzh.ifi.seal.contextmodels.view.layout.MethodCell;
 
 public class ContextModelView extends ViewPart {
 
@@ -57,19 +60,58 @@ public class ContextModelView extends ViewPart {
 
 	private void synchronizeWithModel() {
 		layout.reset();
-		showActiveClass();
+		showClasses();
 	}
 
-	private void showActiveClass() {
+	private void showClasses() {
 		JavaClass activeClass = ContextModel.get().getActiveClass();
 
 		if (activeClass != null) {
 			CellCoordinate coordinates = new CellCoordinate(0, 0);
 			layout.addClass(coordinates, activeClass);
 			showParentClasses(activeClass, coordinates);
+			showChildClasses(activeClass, coordinates);
+			
+//			if (model.getActiveElement() instanceof JavaMethod) {
+//			showCallers((JavaMethod) model.getActiveElement(),
+//					activeClassFigure.getActiveMethodLabel());
+//			showCallees((JavaMethod) model.getActiveElement(),
+//					activeClassFigure.getActiveMethodLabel());
+//		}
+			if(ContextModel.get().getActiveElement() instanceof JavaMethod) {
+				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates);
+			}
 		}
 	}
 	
+	private void showChildClasses(JavaClass clazz, CellCoordinate parentCoordinates) {
+		ContextModel model = ContextModel.get();
+		List<JavaRelation> relations = model.getRelevantRelations();
+		
+		for (JavaRelation relation : relations) {
+			if (relation instanceof JavaInheritance
+					&& ((JavaInheritance) relation).getParentElement().equals(clazz)) {
+				showChildClassAndRelation(((JavaInheritance) relation), parentCoordinates);
+			}
+		}
+	}
+	
+	private void showChildClassAndRelation(JavaInheritance javaInheritance,
+			CellCoordinate parentCoordinates) {
+		
+		CellCoordinate childCoordinate = layout.getFreeChildCoordinates(parentCoordinates);
+		if(childCoordinate == null) {
+			return;
+		}
+		
+		JavaClass childClass = (JavaClass) javaInheritance.getChildElement();
+		
+		layout.addClass(childCoordinate, childClass);
+		layout.addInheritance(childCoordinate, parentCoordinates);
+
+		showChildClasses(childClass, childCoordinate);
+	}
+
 	private void showParentClasses(JavaClass clazz, CellCoordinate childCoordinates) {
 		ContextModel model = ContextModel.get();
 		List<JavaRelation> relations = model.getRelevantRelations();
@@ -98,63 +140,20 @@ public class ContextModelView extends ViewPart {
 		
 	}
 	
-	
+	private void showCallers(JavaMethod activeMethod, CellCoordinate coordinates) {
+		CellCoordinate callerCoordinate = layout.getFreeCallerCoordinate(coordinates);
+		MethodCell cell = layout.getMethodCell(callerCoordinate);
+		if(cell == null) {
+			return;
+		}
+		
+		for (JavaMethod method : ContextModel.get().getCallers(activeMethod)) {
+			cell.addCallerMethod(method);
+		}
 
-//	private void showChildClasses() {
-//		ContextModel model = ContextModel.get();
-//		List<JavaRelation> relations = model.getRelevantRelations();
-//		JavaClass activeClass = model.getActiveClass();
-//
-//		for (JavaRelation relation : relations) {
-//			if (relation instanceof JavaInheritance
-//					&& ((JavaInheritance) relation).getParentElement().equals(
-//							activeClass)) {
-//				showChildClassAndRelation(((JavaInheritance) relation));
-//			}
-//		}
-//	}
-//
-//	private void showChildClassAndRelation(JavaInheritance javaInheritance) {
-//		JavaClass parentClass = (JavaClass) javaInheritance.getChildElement();
-//		ClassFigure childClassFigure = new ClassFigure(parentClass);
-//		Rectangle rectangle = layouter.getChildClassRectangle(childClassFigure);
-//
-//		if (rectangle != null) {
-//			rootFigure.add(childClassFigure);
-//			layout.setConstraint(childClassFigure, rectangle);
-//			rootFigure.add(connectInheritance(childClassFigure,
-//					activeClassFigure));
-//		}
-//	}
-//
-//	private void showParentClasses() {
-//		ContextModel model = ContextModel.get();
-//		List<JavaRelation> relations = model.getRelevantRelations();
-//		JavaClass activeClass = model.getActiveClass();
-//
-//		for (JavaRelation relation : relations) {
-//			if (relation instanceof JavaInheritance
-//					&& ((JavaInheritance) relation).getChildElement().equals(
-//							activeClass)) {
-//				showParentClassAndRelation(((JavaInheritance) relation));
-//			}
-//		}
-//	}
-//
-//	private void showParentClassAndRelation(JavaInheritance javaInheritance) {
-//		JavaClass parentClass = (JavaClass) javaInheritance.getParentElement();
-//		ClassFigure parentClassFigure = new ClassFigure(parentClass);
-//		Rectangle rectangle = layouter
-//				.getParentClassRectangle(parentClassFigure);
-//
-//		if (rectangle != null) {
-//			rootFigure.add(parentClassFigure);
-//			layout.setConstraint(parentClassFigure, rectangle);
-//			rootFigure.add(connectInheritance(activeClassFigure,
-//					parentClassFigure));
-//		}
-//
-//	}
+	}
+
+
 //
 //	private void showActiveClass(JavaClass clazz) {
 //		ContextModel model = ContextModel.get();

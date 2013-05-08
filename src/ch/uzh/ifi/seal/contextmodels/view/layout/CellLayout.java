@@ -80,11 +80,17 @@ public class CellLayout {
 	}
 
 	public void addClass(CellCoordinate coordinate, JavaClass clazz) {
-		if(getCell(coordinate) == null) {
+		if (!checkBounds(coordinate)) {
+			return;
+		}
+		
+		Cell cell = getClassCell(coordinate);
+		
+		if(cell == null || !(cell instanceof ClassCell)) {
 			return;
 		}
 		ClassFigure classFigure = new ClassFigure(clazz);
-		getCell(coordinate).addClassFigure(classFigure);
+		((ClassCell)cell).addClassFigure(classFigure);
 	}
 
 	/**
@@ -109,12 +115,40 @@ public class CellLayout {
 		if (cells.containsKey(coordinate)) {
 			return cells.get(coordinate);
 		}
-
-		Cell cell = new Cell(this, coordinate);
-		cells.put(coordinate, cell);
-		return cell;
+		
+		return null;
 	}
 
+	public ClassCell getClassCell(CellCoordinate coordinate) {
+		Cell cell = getCell(coordinate); 
+		
+		if(cell == null) {
+			cell = new ClassCell(this, coordinate);
+			cells.put(coordinate, cell);
+		} 
+		
+		if(!(cell instanceof ClassCell)) {
+			return null;
+		}
+		
+		return (ClassCell)cell;
+	}
+	
+	public MethodCell getMethodCell(CellCoordinate coordinate) {
+		Cell cell = getCell(coordinate); 
+		
+		if(cell == null) {
+			cell = new MethodCell(this, coordinate);
+			cells.put(coordinate, cell);
+		} 
+		
+		if(!(cell instanceof MethodCell)) {
+			return null;
+		}
+		
+		return (MethodCell)cell;
+	}
+	
 	/**
 	 * Get a rectangle that denotes the maximum size (and position) that content
 	 * content of a cell can use.
@@ -211,6 +245,16 @@ public class CellLayout {
 		return getFirstFreeCoordinate(coordinatePriorities);
 	}
 
+	public CellCoordinate getFreeCallerCoordinate(CellCoordinate cell) {
+		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
+
+		coordinatePriorities.add(new CellCoordinate(cell.getX() - 1, cell.getY()));
+		coordinatePriorities.add(new CellCoordinate(cell.getX() - 1, cell.getY() + 1));
+		coordinatePriorities.add(new CellCoordinate(cell.getX() - 1, cell.getY() - 1));
+		
+		return getFirstFreeCoordinate(coordinatePriorities);
+	}
+	
 	private CellCoordinate getFirstFreeCoordinate(
 			List<CellCoordinate> coordinateList) {
 		for (CellCoordinate coordinates : coordinateList) {
@@ -252,14 +296,15 @@ public class CellLayout {
 	public void addInheritance(CellCoordinate childCoordinate,
 			CellCoordinate parentCoordinate) {
 		
-		if(getCell(childCoordinate) == null || getCell(parentCoordinate) == null) {
+		ClassCell childCell = getClassCell(childCoordinate); 
+		ClassCell parentCell = getClassCell(parentCoordinate); 
+
+		if(childCell == null || parentCell == null) {
 			return;
 		}
-
-		ClassFigure childClassFigure = getCell(childCoordinate)
-				.getClassFigure();
-		ClassFigure parentClassFigure = getCell(parentCoordinate)
-				.getClassFigure();
+		
+		ClassFigure childClassFigure = ((ClassCell)childCell).getClassFigure();
+		ClassFigure parentClassFigure = ((ClassCell)parentCell).getClassFigure();
 
 		if (childClassFigure == null || parentClassFigure == null) {
 			return;

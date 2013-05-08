@@ -2,14 +2,10 @@ package ch.uzh.ifi.seal.contextmodels.view.layout;
 
 import org.eclipse.draw2d.geometry.Rectangle;
 
-import ch.uzh.ifi.seal.contextmodels.view.uml.ClassFigure;
+public abstract class Cell {
 
-public class Cell {
-
-	private final CellLayout layout;
-	private final CellCoordinate coordinates;
-
-	private ClassFigure figure;
+	protected final CellLayout layout;
+	protected final CellCoordinate coordinates;
 
 	public Cell(final CellLayout layout, final CellCoordinate coordinates) {
 		this.coordinates = coordinates;
@@ -20,19 +16,11 @@ public class Cell {
 		return layout.getCellBounds(coordinates);
 	}
 
-	public void addClassFigure(ClassFigure figure) {
-		this.figure = figure;
-		layout.getRootFigure().add(figure);
-		layoutNode();
-	}
 	
-	public ClassFigure getClassFigure() {
-		return figure;
-	}
-	
-	public void layoutNode() {
-		layout.getSwtLayout().setConstraint(figure, getRectangle());
-	}
+	/**
+	 * reposition all elements of the cell.
+	 */
+	public abstract void layoutNode();
 
 	/**
 	 * Show the class in the center of the cell.
@@ -40,19 +28,6 @@ public class Cell {
 	 * @param figure
 	 * @return
 	 */
-	public Rectangle getRectangle() {
-		Rectangle bounds = getBounds();
-
-		int width = figure.getPreferredSize().width;
-		int height = figure.getPreferredSize().height;
-
-		width = bounds.width < width ? bounds.width : width;
-		height = bounds.height < height ? bounds.height : height;
-
-		int x = bounds.x + (bounds.width - width) / 2;
-		int y = bounds.y + (bounds.height - height) / 2;
-
-		return new Rectangle(x, y, width, height);
-	}
+	public abstract Rectangle getRectangle();
 
 }
