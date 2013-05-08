@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Display;
 
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaClass;
 import ch.uzh.ifi.seal.contextmodels.view.uml.ClassFigure;
+import ch.uzh.ifi.seal.contextmodels.view.uml.MethodLabel;
 
 /**
  * Large Layout
@@ -50,6 +51,8 @@ public class CellLayout {
 
 	private final Figure rootFigure;
 	private final XYLayout swtLayout;
+	
+	private ClassFigure activeClassFigure;
 
 	public CellLayout(final Composite parent, final Figure rootFigure,
 			XYLayout swtLayout) {
@@ -79,18 +82,28 @@ public class CellLayout {
 		numberOfCellsY = parent.getBounds().height > THRESHOLD_HEIGHT ? 5 : 3;
 	}
 
-	public void addClass(CellCoordinate coordinate, JavaClass clazz) {
+	public void addActiveClass(CellCoordinate coordinate, JavaClass clazz) {
+		activeClassFigure = addClass(coordinate, clazz);
+	}
+	
+	public ClassFigure getActiveClassFigure() {
+		return activeClassFigure;
+	}
+	
+	public ClassFigure addClass(CellCoordinate coordinate, JavaClass clazz) {
 		if (!checkBounds(coordinate)) {
-			return;
+			return null;
 		}
 		
 		Cell cell = getClassCell(coordinate);
 		
 		if(cell == null || !(cell instanceof ClassCell)) {
-			return;
+			return null;
 		}
 		ClassFigure classFigure = new ClassFigure(clazz);
 		((ClassCell)cell).addClassFigure(classFigure);
+		
+		return classFigure;
 	}
 
 	/**
@@ -315,6 +328,18 @@ public class CellLayout {
 				.getRectangle());
 		rootFigure.add(connectInheritance(childClassFigure, parentClassFigure));
 
+	}
+	
+	public void addCall(MethodLabel caller, MethodLabel calee) {
+		rootFigure.add(connectCaller(caller, calee));
+	}
+	
+	private PolylineConnection connectCaller(MethodLabel caller,
+			MethodLabel calee) {
+		PolylineConnection connection = new PolylineConnection();
+		connection.setSourceAnchor(caller.getRightAnchor());
+		connection.setTargetAnchor(calee.getLeftAnchor());
+		return connection;
 	}
 
 	private PolylineConnection connectInheritance(ClassFigure child,

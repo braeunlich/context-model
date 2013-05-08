@@ -1,6 +1,5 @@
 package ch.uzh.ifi.seal.contextmodels.view;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.draw2d.ColorConstants;
@@ -24,6 +23,8 @@ import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaRelation;
 import ch.uzh.ifi.seal.contextmodels.view.layout.CellCoordinate;
 import ch.uzh.ifi.seal.contextmodels.view.layout.CellLayout;
 import ch.uzh.ifi.seal.contextmodels.view.layout.MethodCell;
+import ch.uzh.ifi.seal.contextmodels.view.uml.CallerMethodFigure;
+import ch.uzh.ifi.seal.contextmodels.view.uml.MethodLabel;
 
 public class ContextModelView extends ViewPart {
 
@@ -68,7 +69,7 @@ public class ContextModelView extends ViewPart {
 
 		if (activeClass != null) {
 			CellCoordinate coordinates = new CellCoordinate(0, 0);
-			layout.addClass(coordinates, activeClass);
+			layout.addActiveClass(coordinates, activeClass);
 			showParentClasses(activeClass, coordinates);
 			showChildClasses(activeClass, coordinates);
 			
@@ -79,7 +80,9 @@ public class ContextModelView extends ViewPart {
 //					activeClassFigure.getActiveMethodLabel());
 //		}
 			if(ContextModel.get().getActiveElement() instanceof JavaMethod) {
-				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates);
+				
+				MethodLabel caleeFigure = layout.getActiveClassFigure().getActiveMethodLabel();
+				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, caleeFigure);
 			}
 		}
 	}
@@ -140,7 +143,7 @@ public class ContextModelView extends ViewPart {
 		
 	}
 	
-	private void showCallers(JavaMethod activeMethod, CellCoordinate coordinates) {
+	private void showCallers(JavaMethod activeMethod, CellCoordinate coordinates, MethodLabel calleeMethodLabel) {
 		CellCoordinate callerCoordinate = layout.getFreeCallerCoordinate(coordinates);
 		MethodCell cell = layout.getMethodCell(callerCoordinate);
 		if(cell == null) {
@@ -148,10 +151,13 @@ public class ContextModelView extends ViewPart {
 		}
 		
 		for (JavaMethod method : ContextModel.get().getCallers(activeMethod)) {
-			cell.addCallerMethod(method);
+			CallerMethodFigure callerFigure = cell.addCallerMethod(method);
+			layout.addCall(callerFigure.getMethodLabel(), calleeMethodLabel);
 		}
 
 	}
+	
+	
 
 
 //

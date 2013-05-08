@@ -7,6 +7,7 @@ import org.eclipse.draw2d.geometry.Rectangle;
 
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaMethod;
 import ch.uzh.ifi.seal.contextmodels.view.uml.CallerMethodFigure;
+import ch.uzh.ifi.seal.contextmodels.view.uml.MethodFigure;
 
 public class MethodCell extends Cell {
 
@@ -37,11 +38,13 @@ public class MethodCell extends Cell {
 		subCells.clear();
 	}
 	
-	public void addCallerMethod(JavaMethod method) {
+	public CallerMethodFigure addCallerMethod(JavaMethod method) {
 		Rectangle bounds = getMethodBounds(subCells.size());
 		MethodSubCell subCell = new MethodSubCell(layout, bounds);
-		subCell.setMethodFigure(new CallerMethodFigure(method));
+		CallerMethodFigure figure = new CallerMethodFigure(method);
+		subCell.setMethodFigure(figure);
 		subCells.add(subCell);
+		return figure;
 	}
 
 	public Rectangle getMethodBounds(final int methodIndex) {
