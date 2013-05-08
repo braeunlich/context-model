@@ -7,7 +7,6 @@ import org.eclipse.draw2d.geometry.Rectangle;
 
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaMethod;
 import ch.uzh.ifi.seal.contextmodels.view.uml.CallerMethodFigure;
-import ch.uzh.ifi.seal.contextmodels.view.uml.MethodFigure;
 
 public class MethodCell extends Cell {
 
@@ -23,6 +22,11 @@ public class MethodCell extends Cell {
 		for(int i=0; i<subCells.size(); i++) {
 			subCells.get(i).setBounds(getMethodBounds(i));
 			subCells.get(i).layoutNode();
+			if(enoughSpace(i)) {
+				subCells.get(i).show();
+			} else {
+				subCells.get(i).hide();
+			}
 		}
 	}
 
@@ -60,6 +64,20 @@ public class MethodCell extends Cell {
 		}
 		
 		return new Rectangle(x, y, width, height);
+	}
+	
+	public boolean enoughSpace(final int methodIndex) {
+		Rectangle methodBounds =  getMethodBounds(methodIndex);
+		
+		if(methodBounds.y < getBounds().y) {
+			return false;
+		}
+		
+		if(methodBounds.y + methodBounds.height > getBounds().y + getBounds().height) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private int getYPosOfMiddleMethod() {

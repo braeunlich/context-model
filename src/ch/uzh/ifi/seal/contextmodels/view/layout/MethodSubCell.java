@@ -26,12 +26,20 @@ public class MethodSubCell {
 	
 	public void setMethodFigure(MethodFigure figure) {
 		this.figure = figure;
-		layout.getRootFigure().add(figure);
-		layoutNode();
+		show();
 	}
 	
 	public void clearFigure() {
 		layout.getRootFigure().remove(figure);
+	}
+	
+	public void hide() {
+		layout.getRootFigure().remove(figure);
+	}
+	
+	public void show() {
+		layout.getRootFigure().add(figure);
+		layoutNode();
 	}
 	
 	public void layoutNode() {

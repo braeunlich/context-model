@@ -278,6 +278,38 @@ public class CellLayout {
 		return getFirstFreeCoordinate(coordinatePriorities);
 	}
 	
+	public CellCoordinate getFreeRandomClassCoordinate() {
+		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
+		
+		coordinatePriorities.add(new CellCoordinate(0, 0));
+		coordinatePriorities.add(new CellCoordinate(1, 0));
+		coordinatePriorities.add(new CellCoordinate(0, 1));
+		coordinatePriorities.add(new CellCoordinate(-1, 0));
+		coordinatePriorities.add(new CellCoordinate(0, -1));
+		coordinatePriorities.add(new CellCoordinate(1, 1));
+		coordinatePriorities.add(new CellCoordinate(-1, -1));
+		coordinatePriorities.add(new CellCoordinate(1, -1));
+		coordinatePriorities.add(new CellCoordinate(-1, 1));
+		coordinatePriorities.add(new CellCoordinate(2, 0));
+		coordinatePriorities.add(new CellCoordinate(-2, 0));
+		coordinatePriorities.add(new CellCoordinate(2, 1));
+		coordinatePriorities.add(new CellCoordinate(-2, 1));
+		coordinatePriorities.add(new CellCoordinate(2, -1));
+		coordinatePriorities.add(new CellCoordinate(-2, -1));
+		coordinatePriorities.add(new CellCoordinate(0, 2));
+		coordinatePriorities.add(new CellCoordinate(0, -2));
+		coordinatePriorities.add(new CellCoordinate(1, 2));
+		coordinatePriorities.add(new CellCoordinate(1, -2));
+		coordinatePriorities.add(new CellCoordinate(-1, 2));
+		coordinatePriorities.add(new CellCoordinate(-1, -2));
+		coordinatePriorities.add(new CellCoordinate(2, 2));
+		coordinatePriorities.add(new CellCoordinate(2, -2));
+		coordinatePriorities.add(new CellCoordinate(-2, 2));
+		coordinatePriorities.add(new CellCoordinate(-2, -2));
+		
+		return getFirstFreeCoordinate(coordinatePriorities);
+	}
+	
 	private CellCoordinate getFirstFreeCoordinate(
 			List<CellCoordinate> coordinateList) {
 		for (CellCoordinate coordinates : coordinateList) {
