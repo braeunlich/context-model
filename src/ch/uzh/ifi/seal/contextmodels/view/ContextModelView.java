@@ -9,12 +9,14 @@ import org.eclipse.draw2d.XYLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 
 import ch.uzh.ifi.seal.contextmodels.model.ContextModel;
+import ch.uzh.ifi.seal.contextmodels.model.HistoryModel;
 import ch.uzh.ifi.seal.contextmodels.model.Observer;
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaClass;
 import ch.uzh.ifi.seal.contextmodels.model.javaelements.JavaInheritance;
@@ -73,15 +75,50 @@ public class ContextModelView extends ViewPart {
 			showParentClasses(activeClass, coordinates);
 			showChildClasses(activeClass, coordinates);
 			
+			showNavigationHistory();
+			
 			if(ContextModel.get().getActiveElement() instanceof JavaMethod) {
 				MethodLabel activeMethodFigure = layout.getActiveClassFigure().getActiveMethodLabel();
-				
 				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, activeMethodFigure);
 				showCallees(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, activeMethodFigure);
 			}
 		}
 	}
 	
+	
+
+	private void showNavigationHistory() {
+		MethodCell cell = layout.getMethodCell(layout.getFreeHistoryCoordinate());
+		
+		HistoryModel history = HistoryModel.getInstance();
+		JavaMethod method = history.getLastMethod();
+		
+		if(method == null) {
+			return;
+		}
+		
+		CallerMethodFigure callerFigure = cell.addCallerMethod(method);
+		callerFigure.setColor(new Color(null, 163, 152, 209));
+		
+		if(ContextModel.get().getActiveElement() instanceof JavaMethod) {
+			MethodLabel activeMethodFigure = layout.getActiveClassFigure().getActiveMethodLabel();
+			layout.addCallConnection(callerFigure.getMethodLabel(), activeMethodFigure);
+		}
+		
+		cell = layout.getMethodCell(layout.getFreeHistoryCoordinate());
+		
+		JavaMethod method2 = history.getMethod(1);
+		
+		if(method2 == null) {
+			return;
+		}
+		
+		CallerMethodFigure callerFigure2 = cell.addCallerMethod(method2);
+		callerFigure2.setColor(new Color(null, 206, 204, 247));
+		layout.addCallConnection(callerFigure2.getMethodLabel(), callerFigure.getMethodLabel());
+		
+	}
+
 	private void showChildClasses(JavaClass clazz, CellCoordinate parentCoordinates) {
 		ContextModel model = ContextModel.get();
 		List<JavaRelation> relations = model.getRelevantRelations();
@@ -147,7 +184,7 @@ public class ContextModelView extends ViewPart {
 		
 		for (JavaMethod method : ContextModel.get().getCallers(activeMethod)) {
 			CallerMethodFigure callerFigure = cell.addCallerMethod(method);
-			layout.addCall(callerFigure.getMethodLabel(), calleeMethodLabel);
+			layout.addCallConnection(callerFigure.getMethodLabel(), calleeMethodLabel);
 		}
 	}
 	
@@ -160,7 +197,7 @@ public class ContextModelView extends ViewPart {
 		
 		for (JavaMethod method : ContextModel.get().getCallees(activeMethod)) {
 			CallerMethodFigure calleeFigure = cell.addCallerMethod(method);
-			layout.addCall(callerMethodLabel, calleeFigure.getMethodLabel());
+			layout.addCallConnection(callerMethodLabel, calleeFigure.getMethodLabel());
 		}
 	}
 	

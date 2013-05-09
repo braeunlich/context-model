@@ -27,6 +27,7 @@ import ch.uzh.ifi.seal.contextmodels.view.uml.MethodLabel;
  * Number of elements depends on the size of the view (3x3, 3x5, 5x3 or 5x5
  * cells).
  * 
+ * 
  * The coordinates (0,0) always denote the center cell.
  * 
  * 
@@ -121,7 +122,7 @@ public class CellLayout {
 	 * @return
 	 */
 	public Cell getCell(CellCoordinate coordinate) {
-		if (!checkBounds(coordinate)) {
+		if (coordinate == null || !checkBounds(coordinate)) {
 			return null;
 		}
 
@@ -278,6 +279,15 @@ public class CellLayout {
 		return getFirstFreeCoordinate(coordinatePriorities);
 	}
 	
+	public CellCoordinate getFreeHistoryCoordinate() {
+		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
+		
+		coordinatePriorities.add(new CellCoordinate(-1, 0));
+		coordinatePriorities.add(new CellCoordinate(-2, 0));
+		
+		return getFirstFreeCoordinate(coordinatePriorities);
+	}
+	
 	public CellCoordinate getFreeRandomClassCoordinate() {
 		List<CellCoordinate> coordinatePriorities = new ArrayList<>();
 		
@@ -333,6 +343,10 @@ public class CellLayout {
 	}
 
 	private boolean checkBounds(CellCoordinate coordinate) {
+		if(coordinate == null) {
+			return false;
+		}
+		
 		if (Math.abs(coordinate.getX()) > (numberOfCellsX / 2)
 				|| Math.abs(coordinate.getY()) > (numberOfCellsY / 2)) {
 			return false;
@@ -372,15 +386,18 @@ public class CellLayout {
 
 	}
 	
-	public void addCall(MethodLabel caller, MethodLabel calee) {
-		rootFigure.add(connectCaller(caller, calee));
+	public void addCallConnection(MethodLabel caller, MethodLabel callee) {
+		if(caller == null || callee == null) {
+			return;
+		}
+		rootFigure.add(connectCaller(caller, callee));
 	}
 	
 	private PolylineConnection connectCaller(MethodLabel caller,
-			MethodLabel calee) {
+			MethodLabel calLee) {
 		PolylineConnection connection = new PolylineConnection();
 		connection.setSourceAnchor(caller.getRightAnchor());
-		connection.setTargetAnchor(calee.getLeftAnchor());
+		connection.setTargetAnchor(calLee.getLeftAnchor());
 		return connection;
 	}
 

@@ -12,7 +12,7 @@ public class CallerMethodFigure extends Figure implements MethodFigure {
 	
 	public static final int HEIGHT = 18;
 	
-	private static Color callerColor = new Color(null, 153, 204, 255);
+	private Color callerColor = new Color(null, 153, 204, 255);
 	private final MethodLabel methodLabel;
 	
 	public CallerMethodFigure(JavaMethod calee) {
@@ -29,6 +29,11 @@ public class CallerMethodFigure extends Figure implements MethodFigure {
 	
 	public MethodLabel getMethodLabel() {
 		return methodLabel;
+	}
+	
+	public void setColor(Color color) {
+		this.callerColor = color;
+		setBackgroundColor(callerColor);
 	}
 	
 }

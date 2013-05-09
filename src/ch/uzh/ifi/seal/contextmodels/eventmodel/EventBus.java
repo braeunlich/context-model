@@ -6,7 +6,6 @@ import java.util.List;
 import ch.uzh.ifi.seal.contextmodels.eventmodel.abstractevents.Event;
 import ch.uzh.ifi.seal.contextmodels.eventmodel.events.JavaClassKeyPressEvent;
 import ch.uzh.ifi.seal.contextmodels.eventmodel.events.JavaClassScrollEvent;
-import ch.uzh.ifi.seal.contextmodels.util.Logger;
 
 public final class EventBus {
 
@@ -37,7 +36,7 @@ public final class EventBus {
 		return instance;
 	}
 
-	private List<EventHandler> eventHandlers = new ArrayList<>();
+	private List<EventHandler> eventHandlers = new ArrayList<EventHandler>();
 
 	/**
 	 * Register an {@link EventHandler} to the EventBus.
@@ -77,7 +76,7 @@ public final class EventBus {
 		if (event.getAffectedJavaElement().equals(
 				lastEvent.getAffectedJavaElement())
 				&& event.getClass().equals(lastEvent.getClass())) {
-			Logger.info("The same Event occured before - the event will not be forwarded");
+			//Logger.info("The same Event occured before - the event will not be forwarded");
 			return true;
 		}
 
