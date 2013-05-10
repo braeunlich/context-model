@@ -54,6 +54,7 @@ public class CellLayout {
 	private final XYLayout swtLayout;
 	
 	private ClassFigure activeClassFigure;
+	private List<JavaClass> classes = new ArrayList<>();
 
 	public CellLayout(final Composite parent, final Figure rootFigure,
 			XYLayout swtLayout) {
@@ -74,6 +75,7 @@ public class CellLayout {
 	}
 
 	public void reset() {
+		classes.clear();
 		rootFigure.removeAll();
 		cells.clear();
 	}
@@ -84,6 +86,7 @@ public class CellLayout {
 	}
 
 	public void addActiveClass(CellCoordinate coordinate, JavaClass clazz) {
+		classes.add(clazz);
 		activeClassFigure = addClass(coordinate, clazz);
 	}
 	
@@ -101,10 +104,17 @@ public class CellLayout {
 		if(cell == null || !(cell instanceof ClassCell)) {
 			return null;
 		}
+		
+		classes.add(clazz);
+		
 		ClassFigure classFigure = new ClassFigure(clazz);
 		((ClassCell)cell).addClassFigure(classFigure);
 		
 		return classFigure;
+	}
+	
+	public boolean isClassDisplayed(JavaClass clazz) {
+		return classes.contains(clazz);
 	}
 
 	/**
@@ -173,7 +183,7 @@ public class CellLayout {
 	public Rectangle getCellBounds(CellCoordinate coordinate) {
 
 		if (!checkBounds(coordinate)) {
-			throw new IndexOutOfBoundsException();
+			return null;
 		}
 
 		int xCellNumber = coordinate.getX() + numberOfCellsX / 2;

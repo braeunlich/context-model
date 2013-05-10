@@ -36,7 +36,7 @@ public class ContextModelView extends ViewPart {
 	private XYLayout swtLayout;
 
 	private CellLayout layout;
-
+	
 	@Override
 	public void createPartControl(Composite parent) {
 
@@ -82,10 +82,30 @@ public class ContextModelView extends ViewPart {
 				showCallers(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, activeMethodFigure);
 				showCallees(((JavaMethod)ContextModel.get().getActiveElement()), coordinates, activeMethodFigure);
 			}
+			
+			showRandomClasses();
 		}
 	}
 	
 	
+
+	/**
+	 * classes that are not connected to the active class.
+	 */
+	private void showRandomClasses() {
+		ContextModel model = ContextModel.get();
+		List<JavaClass> relevantClasses = model.getRelevantClasses();
+		
+		for (JavaClass clazz : relevantClasses) {
+			if(!layout.isClassDisplayed(clazz)) {
+				CellCoordinate coordinate = layout.getFreeRandomClassCoordinate();
+				if(coordinate == null) {
+					return;
+				}				
+				layout.addClass(coordinate, clazz);
+			}
+		}
+	}
 
 	private void showNavigationHistory() {
 		MethodCell cell = layout.getMethodCell(layout.getFreeHistoryCoordinate());
@@ -114,6 +134,10 @@ public class ContextModelView extends ViewPart {
 		}
 		
 		CallerMethodFigure callerFigure2 = cell.addCallerMethod(method2);
+		if(callerFigure2 == null) {
+			return;
+		}
+		
 		callerFigure2.setColor(new Color(null, 206, 204, 247));
 		layout.addCallConnection(callerFigure2.getMethodLabel(), callerFigure.getMethodLabel());
 		

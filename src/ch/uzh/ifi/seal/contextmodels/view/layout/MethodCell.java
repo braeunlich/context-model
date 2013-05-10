@@ -44,6 +44,10 @@ public class MethodCell extends Cell {
 	
 	public CallerMethodFigure addCallerMethod(JavaMethod method) {
 		Rectangle bounds = getMethodBounds(subCells.size());
+		if(bounds == null) {
+			return null;
+		}
+		
 		MethodSubCell subCell = new MethodSubCell(layout, bounds);
 		CallerMethodFigure figure = new CallerMethodFigure(method);
 		subCell.setMethodFigure(figure);
@@ -52,6 +56,10 @@ public class MethodCell extends Cell {
 	}
 
 	public Rectangle getMethodBounds(final int methodIndex) {
+		if(getBounds() == null) {
+			return null;
+		}
+		
 		int height = CallerMethodFigure.HEIGHT;
 		int width = getBounds().width;
 		int x = getBounds().x;
